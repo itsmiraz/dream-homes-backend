@@ -5,29 +5,32 @@ import bcrypt from 'bcryptjs';
 
 const userSchema = new Schema<TUser>(
   {
-    id: {
+    name: {
       type: String,
-      required: true,
-      unique: true,
+      required: [true, 'Name is Required'],
     },
+    email: {
+      type: String,
+      unique: true,
+      required: [true, 'Email is Required'],
+    },
+    profileImg: {
+      type: String,
+      default:
+        'https://static.vecteezy.com/system/resources/thumbnails/009/734/564/large/default-avatar-profile-icon-of-social-media-user-vector.jpg',
+    },
+
     password: {
       type: String,
       required: [true, 'Password is Required'],
       maxlength: [20, 'Password can not be more than 20 characters'],
     },
-    needsPasswordChanged: {
-      type: Boolean,
-      default: true,
-    },
+
     role: {
       type: String,
-      enum: ['admin', 'student', 'faculty'],
+      enum: ['admin', 'user', 'seller', 'mod'],
     },
-    status: {
-      type: String,
-      enum: ['in-progress', 'blocked'],
-      default: 'in-progress',
-    },
+
     isDeleted: {
       type: Boolean,
       default: false,
@@ -41,10 +44,10 @@ const userSchema = new Schema<TUser>(
 // Pre save middleware /hook
 userSchema.pre('save', async function (next) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const student = this; //document
+  const user = this; //document
   // Hashing user password and save to the db
-  student.password = await bcrypt.hash(
-    student.password,
+  user.password = await bcrypt.hash(
+    user.password,
     Number(config.bcrypt_salt_round),
   );
   next();
@@ -59,9 +62,9 @@ userSchema.post('save', function (doc, next) {
 
 userSchema.pre('findOneAndUpdate', async function (next) {
   const query = this.getQuery();
-  const isStudentExists = await User.findOne(query);
+  const isStudnetExists = await User.findOne(query);
 
-  if (!isStudentExists) {
+  if (!isStudnetExists) {
     throw new Error('Student Does not Exist');
   } else {
     next();
@@ -69,9 +72,9 @@ userSchema.pre('findOneAndUpdate', async function (next) {
 });
 userSchema.pre('updateOne', async function (next) {
   const query = this.getQuery();
-  const isStudentExists = await User.findOne(query);
+  const isStudnetExists = await User.findOne(query);
 
-  if (!isStudentExists) {
+  if (!isStudnetExists) {
     throw new Error('Student Does not Exist');
   } else {
     next();
