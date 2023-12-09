@@ -23,6 +23,7 @@ const registerUser = catchAsync(async (req, res) => {
   const token = jwt.sign(
     {
       id: result.email,
+      role: result.role,
     },
 
     config.jwt_key as string,
@@ -30,22 +31,52 @@ const registerUser = catchAsync(async (req, res) => {
       expiresIn: '1d',
     },
   );
-
-  res
-    .cookie('accessToken', token, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
-    .status(201)
-    .send({
-      statusCode: httpStatus.CREATED,
-      success: true,
-      message: 'User is registered SuccessFully',
-      data: result,
-    });
+  //   .cookie('dreamHomeAccessToken', token, {
+  //   httpOnly: true,
+  //   secure: false, // Set to true if your app is served over HTTPS
+  //   sameSite: 'none',
+  //   maxAge: 7 * 24 * 60 * 60 * 1000,
+  // })
+  res.status(201).send({
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'User is registered SuccessFully',
+    data: result,
+    token: token,
+  });
 });
 
+const loginUser = catchAsync(async (req, res) => {
+  const payload = req.body;
+
+  const result = await UserServices.loginUser(payload);
+
+  const token = jwt.sign(
+    {
+      id: result.email,
+      role: result.role,
+    },
+
+    config.jwt_key as string,
+    {
+      expiresIn: '1d',
+    },
+  );
+  //  .cookie('dreamHomeAccessToken', token, {
+  //   httpOnly: true,
+  //   secure: false, // Set to true if your app is served over HTTPS
+  //   sameSite: 'none',
+  //   maxAge: 7 * 24 * 60 * 60 * 1000,
+  // })
+  res.status(201).send({
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'User is login SuccessFully',
+    data: result,
+    token: token,
+  });
+});
 export const UserController = {
   registerUser,
+  loginUser,
 };

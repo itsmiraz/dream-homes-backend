@@ -2,6 +2,7 @@ import { Schema, model } from 'mongoose';
 import { TUser } from './user.interface';
 import config from '../../config';
 import bcrypt from 'bcryptjs';
+import AppError from '../../errors/AppError';
 
 const userSchema = new Schema<TUser>(
   {
@@ -51,6 +52,18 @@ userSchema.pre('save', async function (next) {
     Number(config.bcrypt_salt_round),
   );
   next();
+});
+// Pre save middleware /hook
+userSchema.pre('save', async function (next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = this; //document
+  // Hashing user password and save to the db
+  const isUserExists = await User.findOne({ email: user.email });
+  if (isUserExists) {
+    throw new AppError(400, 'User Email Alread Exists');
+  } else {
+    next();
+  }
 });
 
 //post save middleware /hook
